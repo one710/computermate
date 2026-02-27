@@ -27,24 +27,24 @@
 
 ComputerMate exposes the following tools to the LLM:
 
-| Tool | AI-Friendly Description |
-| :--- | :--- |
-| `screenshot` | Take a full screenshot of the current screen or browser viewport. |
+| Tool                | AI-Friendly Description                                               |
+| :------------------ | :-------------------------------------------------------------------- |
+| `screenshot`        | Take a full screenshot of the current screen or browser viewport.     |
 | `screenshot_region` | Capture a specific rectangular area by providing two diagonal points. |
-| `click` | Move pointer and click (left, middle, right supported). |
-| `double_click` | Rapidly click twice at the given coordinates. |
-| `scroll` | Scroll the window content at (x, y) by given amount. |
-| `type` | Send keyboard text input to the active window. |
-| `keypress` | Send key combinations (e.g. `["ctrl", "c"]`, `["alt", "tab"]`). |
-| `move` | Move the mouse pointer without clicking. |
-| `drag` | Drag the mouse from start point along a path of coordinates. |
-| `wait` | Pause execution for a set number of milliseconds. |
-| `get_dimensions` | Retrieve the screen or viewport width and height. |
-| `get_environment` | Returns the current platform (`linux`, `mac`, `windows`, `browser`). |
-| `goto` | **(Playwright only)** Navigate to a specific URL. |
-| `back` | **(Playwright only)** Go back in history. |
-| `forward` | **(Playwright only)** Go forward in history. |
-| `get_current_url`| **(Playwright only)** Retrieve the current active page URL. |
+| `click`             | Move pointer and click (left, middle, right supported).               |
+| `double_click`      | Rapidly click twice at the given coordinates.                         |
+| `scroll`            | Scroll the window content at (x, y) by given amount.                  |
+| `type`              | Send keyboard text input to the active window.                        |
+| `keypress`          | Send key combinations (e.g. `["ctrl", "c"]`, `["alt", "tab"]`).       |
+| `move`              | Move the mouse pointer without clicking.                              |
+| `drag`              | Drag the mouse from start point along a path of coordinates.          |
+| `wait`              | Pause execution for a set number of milliseconds.                     |
+| `get_dimensions`    | Retrieve the screen or viewport width and height.                     |
+| `get_environment`   | Returns the current platform (`linux`, `mac`, `windows`, `browser`).  |
+| `goto`              | **(Playwright only)** Navigate to a specific URL.                     |
+| `back`              | **(Playwright only)** Go back in history.                             |
+| `forward`           | **(Playwright only)** Go forward in history.                          |
+| `get_current_url`   | **(Playwright only)** Retrieve the current active page URL.           |
 
 ---
 
@@ -55,17 +55,22 @@ ComputerMate exposes the following tools to the LLM:
 Run the server directly without installing:
 
 # MacOS
+
 npx @one710/computermate mac
 
 # Linux
+
 npx @one710/computermate linux
 
 # Windows
+
 npx @one710/computermate windows
 
 # Playwright (Browser only)
+
 npx @one710/computermate playwright
-```
+
+````
 
 ### 🐳 Using Docker (Safe & Persistent)
 
@@ -78,7 +83,7 @@ cd computermate
 
 # Start the server with persistence
 docker-compose up --build
-```
+````
 
 - **MCP Endpoint**: `http://localhost:3000`
 - **VNC View**: `localhost:5900` (Password: `one710`)

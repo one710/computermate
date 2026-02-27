@@ -186,12 +186,12 @@ export class WindowsComputer implements Computer {
     const flags = MOUSE_FLAGS[button] ?? MOUSE_FLAGS.left;
     this.ps(
       `Add-Type -MemberDefinition '` +
-      `[DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);` +
-      `[DllImport("user32.dll")] public static extern void mouse_event(int f, int dx, int dy, int d, int i);` +
-      `' -Name U -Namespace W;` +
-      `[W.U]::SetCursorPos(${x}, ${y});` +
-      `[W.U]::mouse_event(${flags.down}, 0, 0, 0, 0);` +
-      `[W.U]::mouse_event(${flags.up}, 0, 0, 0, 0)`,
+        `[DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);` +
+        `[DllImport("user32.dll")] public static extern void mouse_event(int f, int dx, int dy, int d, int i);` +
+        `' -Name U -Namespace W;` +
+        `[W.U]::SetCursorPos(${x}, ${y});` +
+        `[W.U]::mouse_event(${flags.down}, 0, 0, 0, 0);` +
+        `[W.U]::mouse_event(${flags.up}, 0, 0, 0, 0)`,
     );
   }
 
@@ -211,11 +211,11 @@ export class WindowsComputer implements Computer {
     const clicks = Math.abs(scrollY);
     this.ps(
       `Add-Type -MemberDefinition '` +
-      `[DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);` +
-      `[DllImport("user32.dll")] public static extern void mouse_event(int f, int dx, int dy, int d, int i);` +
-      `' -Name U -Namespace W;` +
-      `[W.U]::SetCursorPos(${x}, ${y});` +
-      `1..${clicks} | ForEach-Object { [W.U]::mouse_event(0x0800, 0, 0, ${delta}, 0) }`,
+        `[DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);` +
+        `[DllImport("user32.dll")] public static extern void mouse_event(int f, int dx, int dy, int d, int i);` +
+        `' -Name U -Namespace W;` +
+        `[W.U]::SetCursorPos(${x}, ${y});` +
+        `1..${clicks} | ForEach-Object { [W.U]::mouse_event(0x0800, 0, 0, ${delta}, 0) }`,
     );
   }
 
@@ -224,7 +224,7 @@ export class WindowsComputer implements Computer {
     const escaped = text.replace(/([+^%~{}[\]()])/g, "{$1}");
     this.ps(
       `Add-Type -AssemblyName System.Windows.Forms; ` +
-      `[System.Windows.Forms.SendKeys]::SendWait("${escaped.replace(/"/g, '`"')}")`,
+        `[System.Windows.Forms.SendKeys]::SendWait("${escaped.replace(/"/g, '`"')}")`,
     );
   }
 
@@ -235,9 +235,9 @@ export class WindowsComputer implements Computer {
   async move(x: number, y: number): Promise<void> {
     this.ps(
       `Add-Type -MemberDefinition '` +
-      `[DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);` +
-      `' -Name U -Namespace W;` +
-      `[W.U]::SetCursorPos(${x}, ${y})`,
+        `[DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);` +
+        `' -Name U -Namespace W;` +
+        `[W.U]::SetCursorPos(${x}, ${y})`,
     );
   }
 
@@ -260,7 +260,7 @@ export class WindowsComputer implements Computer {
 
     this.ps(
       `Add-Type -AssemblyName System.Windows.Forms; ` +
-      `[System.Windows.Forms.SendKeys]::SendWait("${combo}")`,
+        `[System.Windows.Forms.SendKeys]::SendWait("${combo}")`,
     );
   }
 
@@ -276,15 +276,15 @@ export class WindowsComputer implements Computer {
     const { x: sx, y: sy } = path[0];
     this.ps(
       `${pInvoke}` +
-      `[W.U]::SetCursorPos(${sx}, ${sy});` +
-      `[W.U]::mouse_event(0x0002, 0, 0, 0, 0)`,
+        `[W.U]::SetCursorPos(${sx}, ${sy});` +
+        `[W.U]::mouse_event(0x0002, 0, 0, 0, 0)`,
     );
 
     for (const { x, y } of path.slice(1)) {
       this.ps(
         `${pInvoke}` +
-        `[W.U]::SetCursorPos(${x}, ${y});` +
-        `[W.U]::mouse_event(0x0001, 0, 0, 0, 0)`,
+          `[W.U]::SetCursorPos(${x}, ${y});` +
+          `[W.U]::mouse_event(0x0001, 0, 0, 0, 0)`,
       );
     }
 
