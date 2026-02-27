@@ -56,21 +56,27 @@ Run the server directly without installing:
 
 # MacOS
 
+```bash
 npx @one710/computermate mac
+```
 
 # Linux
 
+```bash
 npx @one710/computermate linux
+```
 
 # Windows
 
+```bash
 npx @one710/computermate windows
+```
 
 # Playwright (Browser only)
 
+```bash
 npx @one710/computermate playwright
-
-````
+```
 
 ### 🐳 Using Docker (Safe & Persistent)
 
@@ -83,7 +89,7 @@ cd computermate
 
 # Start the server with persistence
 docker-compose up --build
-````
+```
 
 - **MCP Endpoint**: `http://localhost:3000`
 - **VNC View**: `localhost:5900` (Password: `one710`)
