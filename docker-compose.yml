@@ -1,0 +1,12 @@
+services:
+  computermate:
+    build: .
+    platform: linux/amd64
+    ports:
+      - "5900:5900"
+      - "3000:3000"
+    volumes:
+      - computermate_home:/home/one710
+
+volumes:
+  computermate_home:

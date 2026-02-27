@@ -1,0 +1,38 @@
+{
+  "name": "@one710/computermate",
+  "version": "0.0.1",
+  "description": "MCP server exposing computer-use tools to LLMs",
+  "type": "module",
+  "main": "dist/lib.js",
+  "types": "dist/lib.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/lib.js",
+      "types": "./dist/lib.d.ts"
+    }
+  },
+  "bin": {
+    "computermate": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "start:http": "node dist/http.js",
+    "test": "vitest run tests/native.test.ts",
+    "test:playwright": "vitest run tests/playwright.test.ts",
+    "test:integration": "vitest run tests/mcp-server.test.ts",
+    "test:docker": "vitest run tests/docker-http.test.ts --testTimeout=180000",
+    "test:all": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "playwright": "^1.50.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.18"
+  }
+}
