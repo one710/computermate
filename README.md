@@ -108,23 +108,22 @@ Add this to your `claude_desktop_config.json` (or equivalent MCP client config):
 }
 ```
 
-Or for **Docker (HTTP)**:
+### 🐳 Docker (HTTP)
 
-```json
-{
-  "mcpServers": {
-    "computermate": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/client-http",
-        "--url",
-        "http://localhost:3000"
-      ]
-    }
-  }
-}
+If you're running ComputerMate in Docker, you'll first need to start the container and expose the MCP port (3000):
+
+```bash
+docker run -d --name computermate -p 3000:3000 ghcr.io/one710/computermate:latest
 ```
+
+To test the connection, you can use the **MCP Inspector**:
+
+```bash
+npx @modelcontextprotocol/inspector http://localhost:3000
+```
+
+> [!NOTE]
+> For production use in clients like Claude Desktop, ensure your client supports HTTP MCP transports natively, or use an MCP-to-stdio bridge.
 
 ---
 
@@ -135,5 +134,5 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 ---
 
 <p align="center">
-  Built with ❤️ by the <b>One710</b> Team.
+  Built with ❤️ by the <b>One710 Softworks</b> Team.
 </p>
