@@ -2,8 +2,10 @@
 
 > **"Your AI's hands and eyes on any machine."**
 
+[![Test Status](https://github.com/one710/computermate/actions/workflows/test.yml/badge.svg)](https://github.com/one710/computermate/actions/workflows/test.yml)
+[![npm version](https://img.shields.io/npm/v/@one710/computermate.svg)](https://www.npmjs.com/package/@one710/computermate)
+[![npm downloads](https://img.shields.io/npm/dm/@one710/computermate.svg)](https://www.npmjs.com/package/@one710/computermate)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![MCP](https://img.shields.io/badge/MCP-1.27.1-blue.svg)](https://modelcontextprotocol.io)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)](#installation)
 
 **ComputerMate** is a powerful Model Context Protocol (MCP) server that grants AI models the ability to interact with your computer just like a human would. From taking screenshots to clicking buttons and typing text, ComputerMate exposes your local machine (or a sandboxed Docker container) as a set of tools for LLMs.
