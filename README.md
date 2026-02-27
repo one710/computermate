@@ -54,9 +54,17 @@ ComputerMate exposes the following tools to the LLM:
 
 Run the server directly without installing:
 
-```bash
-# MacOS / Linux / Windows
-npx @one710/computermate
+# MacOS
+npx @one710/computermate mac
+
+# Linux
+npx @one710/computermate linux
+
+# Windows
+npx @one710/computermate windows
+
+# Playwright (Browser only)
+npx @one710/computermate playwright
 ```
 
 ### 🐳 Using Docker (Safe & Persistent)
@@ -123,7 +131,7 @@ Add this to your `claude_desktop_config.json` (or equivalent MCP client config):
   "mcpServers": {
     "computermate": {
       "command": "npx",
-      "args": ["-y", "@one710/computermate"]
+      "args": ["-y", "@one710/computermate", "mac"]
     }
   }
 }
@@ -144,7 +152,29 @@ npx @modelcontextprotocol/inspector http://localhost:3000
 ```
 
 > [!NOTE]
-> For production use in clients like Claude Desktop, ensure your client supports HTTP MCP transports natively, or use an MCP-to-stdio bridge.
+> For production use in clients like Claude Desktop, ensure your client supports HTTP MCP transports natively, or use an MCP-to-stdio bridge like `mcp-remote`.
+
+### 🌉 Stdio-to-Docker Bridge (mcp-remote)
+
+If your MCP client (like Cursor or older versions of Claude Desktop) only supports `stdio` transports, you can bridge it to the ComputerMate Docker container using `mcp-remote`:
+
+```json
+{
+  "mcpServers": {
+    "computermate-docker": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "http://localhost:3000/sse",
+        "--allow-http"
+      ]
+    }
+  }
+}
+```
+
+This command starts a local `stdio` server that transparently forwards all requests to the ComputerMate container running at `http://localhost:3000`.
 
 ---
 
