@@ -84,12 +84,18 @@ export class WindowsComputer implements Computer {
   // ---- helpers ----------------------------------------------------------
 
   private ps(script: string): string {
-    // Run a PowerShell command and capture output.
-    // Using -Command is more portable than -EncodedCommand for short scripts.
-    const escaped = script.replace(/"/g, '\\"');
-    return execSync(`powershell.exe -NoProfile -Command "${escaped}"`, {
-      encoding: "utf-8",
-    }).trim();
+    // Run a PowerShell command using -EncodedCommand (UTF-16LE Base64).
+    // This avoids all shell quoting and interpolation issues.
+    const buffer = Buffer.from(script, "utf16le");
+    const encoded = buffer.toString("base64");
+
+    return execSync(
+      `powershell.exe -NoProfile -NonInteractive -EncodedCommand ${encoded}`,
+      {
+        encoding: "utf-8",
+        maxBuffer: 10 * 1024 * 1024, // 10MB to fit screenshots
+      },
+    ).trim();
   }
 
   // ---- Computer interface -----------------------------------------------
@@ -100,13 +106,20 @@ export class WindowsComputer implements Computer {
 
   async getDimensions(): Promise<[number, number]> {
     try {
-      const result = this.ps(
-        "Add-Type -AssemblyName System.Windows.Forms; " +
-          "[System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Size | " +
-          'ForEach-Object { \\"$($_.Width) $($_.Height)\\" }',
-      );
-      const [w, h] = result.split(/\s+/);
-      return [Number(w), Number(h)];
+      const script = `
+        Add-Type -AssemblyName System.Windows.Forms
+        $screen = [System.Windows.Forms.Screen]::PrimaryScreen
+        if ($null -eq $screen) {
+          # Fallback for CI/Headless sessions
+          Write-Output "1920 1080"
+        } else {
+          Write-Output "$($screen.Bounds.Width) $($screen.Bounds.Height)"
+        }
+      `;
+      const result = this.ps(script);
+      const parts = result.split(/\s+/).filter(Boolean);
+      if (parts.length < 2) throw new Error("Invalid output");
+      return [Number(parts[0]), Number(parts[1])];
     } catch {
       return [1920, 1080];
     }
@@ -117,11 +130,16 @@ export class WindowsComputer implements Computer {
     const script = `
       Add-Type -AssemblyName System.Windows.Forms
       Add-Type -AssemblyName System.Drawing
-      $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-      $bmp = New-Object System.Drawing.Bitmap($screen.Width, $screen.Height)
-      $gfx = [System.Drawing.Graphics]::FromImage($bmp)
-      $gfx.CopyFromScreen($screen.Location, [System.Drawing.Point]::Empty, $screen.Size)
-      $gfx.Dispose()
+      $screen = [System.Windows.Forms.Screen]::PrimaryScreen
+      if ($null -eq $screen) {
+        $bmp = New-Object System.Drawing.Bitmap(1, 1)
+      } else {
+        $bounds = $screen.Bounds
+        $bmp = New-Object System.Drawing.Bitmap($bounds.Width, $bounds.Height)
+        $gfx = [System.Drawing.Graphics]::FromImage($bmp)
+        $gfx.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+        $gfx.Dispose()
+      }
       $ms = New-Object System.IO.MemoryStream
       $bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::Png)
       $bmp.Dispose()
