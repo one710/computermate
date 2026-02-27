@@ -1,6 +1,6 @@
 {
   "name": "@one710/computermate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server exposing computer-use tools to LLMs",
   "type": "module",
   "main": "dist/lib.js",
