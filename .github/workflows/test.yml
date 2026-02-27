@@ -64,6 +64,7 @@ jobs:
 
       - name: Run Playwright tests
         if: matrix.suite == 'playwright'
+        shell: bash
         run: |
           if [ "${{ runner.os }}" = "Linux" ]; then
             xvfb-run --auto-servernum yarn vitest run tests/playwright.test.ts --reporter=verbose
