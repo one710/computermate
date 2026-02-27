@@ -24,6 +24,7 @@ export function createComputer(type: ComputerType): Computer {
     case "playwright":
       return new PlaywrightComputer({
         channel: "chrome",
+        headless: process.env.HEADLESS !== "false",
         virtualCursor: process.env.VIRTUAL_CURSOR === "true",
       });
   }

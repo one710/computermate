@@ -35,7 +35,7 @@ jobs:
       # -- OS-specific deps (native only) ------------------------------------
 
       - name: Install Linux deps
-        if: matrix.suite == 'native' && runner.os == 'Linux'
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb xdotool imagemagick
@@ -64,7 +64,12 @@ jobs:
 
       - name: Run Playwright tests
         if: matrix.suite == 'playwright'
-        run: yarn vitest run tests/playwright.test.ts --reporter=verbose
+        run: |
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            xvfb-run --auto-servernum yarn vitest run tests/playwright.test.ts --reporter=verbose
+          else
+            yarn vitest run tests/playwright.test.ts --reporter=verbose
+          fi
 
   # ---------------------------------------------------------------------------
   # Stage 2 — Docker Integration (runs in parallel with Stage 1)
@@ -85,6 +90,9 @@ jobs:
           cache: yarn
 
       - run: yarn install --frozen-lockfile
+
+      - name: Build Docker image
+        run: docker build -t computermate .
 
       - name: Run Docker integration tests
         run: yarn test:docker --reporter=verbose
