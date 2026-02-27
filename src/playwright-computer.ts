@@ -110,7 +110,7 @@ export class PlaywrightComputer implements Computer {
   private page: Page | null = null;
 
   constructor(options: PlaywrightComputerOptions = {}) {
-    this.headless = options.headless ?? true;
+    this.headless = options.headless ?? false;
     this.channel = options.channel ?? "chrome";
     this.startUrl = options.startUrl ?? "about:blank";
     this.width = options.width ?? 1024;
