@@ -49,6 +49,30 @@ export function registerTools(server: McpServer, computer: Computer): void {
     },
   );
 
+  // -- screenshot_region --------------------------------------------------
+  server.registerTool(
+    "screenshot_region",
+    {
+      description:
+        "Take a screenshot of a specific region and return it as a base64-encoded PNG.",
+      inputSchema: {
+        x1: z.number().describe("X coordinate of the first point"),
+        y1: z.number().describe("Y coordinate of the first point"),
+        x2: z.number().describe("X coordinate of the second point"),
+        y2: z.number().describe("Y coordinate of the second point"),
+      },
+    },
+    async ({ x1, y1, x2, y2 }) => {
+      const base64 = await computer.screenshotRegion(
+        { x: x1, y: y1 },
+        { x: x2, y: y2 },
+      );
+      return {
+        content: [{ type: "image", data: base64, mimeType: "image/png" }],
+      };
+    },
+  );
+
   // -- click --------------------------------------------------------------
   server.registerTool(
     "click",

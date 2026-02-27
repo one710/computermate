@@ -1,6 +1,7 @@
 # 🤖 ComputerMate
 
-> **"Your AI's hands and eyes on any machine."**
+> **"Your AI's hands and eyes on any machine."**  
+> _(The forbidden MCP of the AI era...)_
 
 [![Test Status](https://github.com/one710/computermate/actions/workflows/test.yml/badge.svg)](https://github.com/one710/computermate/actions/workflows/test.yml)
 [![npm version](https://img.shields.io/npm/v/@one710/computermate.svg)](https://www.npmjs.com/package/@one710/computermate)
@@ -18,12 +19,32 @@
 - 🐳 **Docker-First**: Run in a fully isolated Linux desktop environment with VNC access and state persistence.
 - 🖱️ **Virtual Cursor**: Enable a visual mouse cursor in Playwright by setting `VIRTUAL_CURSOR=true`.
 - 🌐 **Web Automation**: Integrated **Playwright** support for high-performance, browser-only computer use.
-- 🛠️ **Full Toolset**:
-  - `screenshot`: See exactly what the computer sees.
-  - `click`, `double_click`, `drag`: Interact with any UI element.
-  - `type`, `keypress`: Fill out forms and use hotkeys.
-  - `move`, `scroll`: Navigate through windows and long pages.
-- 🔒 **Secure Transport**: Supports both `stdio` (local) and `HTTP` (remote/Docker) transports.
+- � **Secure Transport**: Supports both `stdio` (local) and `HTTP` (remote/Docker) transports.
+
+---
+
+## 🛠️ Available Tools
+
+ComputerMate exposes the following tools to the LLM:
+
+| Tool | AI-Friendly Description |
+| :--- | :--- |
+| `screenshot` | Take a full screenshot of the current screen or browser viewport. |
+| `screenshot_region` | Capture a specific rectangular area by providing two diagonal points. |
+| `click` | Move pointer and click (left, middle, right supported). |
+| `double_click` | Rapidly click twice at the given coordinates. |
+| `scroll` | Scroll the window content at (x, y) by given amount. |
+| `type` | Send keyboard text input to the active window. |
+| `keypress` | Send key combinations (e.g. `["ctrl", "c"]`, `["alt", "tab"]`). |
+| `move` | Move the mouse pointer without clicking. |
+| `drag` | Drag the mouse from start point along a path of coordinates. |
+| `wait` | Pause execution for a set number of milliseconds. |
+| `get_dimensions` | Retrieve the screen or viewport width and height. |
+| `get_environment` | Returns the current platform (`linux`, `mac`, `windows`, `browser`). |
+| `goto` | **(Playwright only)** Navigate to a specific URL. |
+| `back` | **(Playwright only)** Go back in history. |
+| `forward` | **(Playwright only)** Go forward in history. |
+| `get_current_url`| **(Playwright only)** Retrieve the current active page URL. |
 
 ---
 

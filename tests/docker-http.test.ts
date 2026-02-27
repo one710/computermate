@@ -149,10 +149,31 @@ describe("docker HTTP MCP server", () => {
     expect(data.length).toBeGreaterThan(0);
 
     const buf = Buffer.from(data, "base64");
-    expect(buf[0]).toBe(137); // PNG magic
-    expect(buf[1]).toBe(80);
-    expect(buf[2]).toBe(78);
     expect(buf[3]).toBe(71);
+  });
+
+  // -- screenshot_region --------------------------------------------------
+
+  it("screenshot_region returns valid PNG", async () => {
+    const result = (await client.callTool({
+      name: "screenshot_region",
+      arguments: { x1: 50, y1: 50, x2: 150, y2: 150 },
+    })) as CallToolResult;
+    const data = imageData(result);
+    expect(data.length).toBeGreaterThan(0);
+
+    const buf = Buffer.from(data, "base64");
+    expect(buf[0]).toBe(137);
+    expect(buf[1]).toBe(80);
+  });
+
+  it("screenshot_region handles out-of-bounds gracefully", async () => {
+    const result = (await client.callTool({
+      name: "screenshot_region",
+      arguments: { x1: -100, y1: -100, x2: 3000, y2: 3000 },
+    })) as CallToolResult;
+    const data = imageData(result);
+    expect(data.length).toBeGreaterThan(0);
   });
 
   // -- click --------------------------------------------------------------

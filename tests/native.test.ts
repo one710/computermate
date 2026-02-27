@@ -87,6 +87,34 @@ describe(`native (${type}) MCP server`, () => {
     expect(buf[3]).toBe(71); // G
   });
 
+  // -- screenshot_region --------------------------------------------------
+
+  it("screenshot_region returns base64 PNG image", async () => {
+    const result = await client.callTool("screenshot_region", {
+      x1: 10,
+      y1: 10,
+      x2: 110,
+      y2: 110,
+    });
+    const data = McpTestClient.imageData(result);
+    expect(data.length).toBeGreaterThan(0);
+
+    const buf = Buffer.from(data, "base64");
+    expect(buf[0]).toBe(137);
+    expect(buf[1]).toBe(80);
+  });
+
+  it("screenshot_region handles out-of-bounds gracefully", async () => {
+    const result = await client.callTool("screenshot_region", {
+      x1: -50,
+      y1: -50,
+      x2: 5000,
+      y2: 5000,
+    });
+    const data = McpTestClient.imageData(result);
+    expect(data.length).toBeGreaterThan(0);
+  });
+
   // -- click --------------------------------------------------------------
 
   it("click executes without error", async () => {

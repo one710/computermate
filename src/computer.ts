@@ -32,6 +32,9 @@ export interface Computer {
   /** Capture a screenshot and return it as a base64-encoded PNG string. */
   screenshot(): Promise<string>;
 
+  /** Capture a specific rectangular region and return it as a base64-encoded PNG string. */
+  screenshotRegion(p1: Point, p2: Point): Promise<string>;
+
   /** Move the pointer to (x, y) and perform a mouse click. */
   click(x: number, y: number, button?: MouseButton): Promise<void>;
 

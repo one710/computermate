@@ -1,5 +1,8 @@
 import { execSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, unlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { randomBytes } from "node:crypto";
 import { Computer, Environment, MouseButton, Point } from "./computer.js";
 
 // ---------------------------------------------------------------------------
@@ -87,6 +90,7 @@ const CLICLICK_BUTTON: Record<MouseButton, string> = {
  * Requires macOS and `cliclick` to be installed (`brew install cliclick`).
  */
 export class MacComputer implements Computer {
+  private cachedDimensions: [number, number] | null = null;
   // ---- helpers ----------------------------------------------------------
 
   private exec(cmd: string): string {
@@ -99,6 +103,11 @@ export class MacComputer implements Computer {
     return this.exec(`osascript -e '${safe}'`);
   }
 
+  private getTempPath(): string {
+    const filename = `computermate_${randomBytes(8).toString("hex")}.png`;
+    return join(tmpdir(), filename);
+  }
+
   // ---- Computer interface -----------------------------------------------
 
   getEnvironment(): Environment {
@@ -106,13 +115,16 @@ export class MacComputer implements Computer {
   }
 
   async getDimensions(): Promise<[number, number]> {
+    if (this.cachedDimensions) return this.cachedDimensions;
+
     try {
       const script =
         'tell application "Finder" to get bounds of window of desktop';
       const result = this.osascript(script); // "0, 0, 1920, 1080"
       const parts = result.split(",").map((s) => Number(s.trim()));
-      if (parts.length >= 4) {
-        return [parts[2], parts[3]];
+      if (parts.length >= 4 && parts[2] > 0 && parts[3] > 0) {
+        this.cachedDimensions = [parts[2], parts[3]];
+        return this.cachedDimensions;
       }
     } catch {
       // ignore
@@ -125,7 +137,8 @@ export class MacComputer implements Computer {
       );
       const match = raw.match(/(\d+)\s*x\s*(\d+)/);
       if (match) {
-        return [Number(match[1]), Number(match[2])];
+        this.cachedDimensions = [Number(match[1]), Number(match[2])];
+        return this.cachedDimensions;
       }
     } catch {
       // ignore
@@ -135,10 +148,43 @@ export class MacComputer implements Computer {
   }
 
   async screenshot(): Promise<string> {
-    const tmp = "/tmp/computermate_screenshot.png";
-    this.exec(`screencapture -x ${tmp}`);
-    const buf = readFileSync(tmp);
-    return buf.toString("base64");
+    const tmp = this.getTempPath();
+    try {
+      this.exec(`screencapture -x ${tmp}`);
+      const buf = readFileSync(tmp);
+      return buf.toString("base64");
+    } finally {
+      try {
+        unlinkSync(tmp);
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  async screenshotRegion(p1: Point, p2: Point): Promise<string> {
+    const [sw, sh] = await this.getDimensions();
+    const xMin = Math.max(0, Math.min(p1.x, p2.x));
+    const yMin = Math.max(0, Math.min(p1.y, p2.y));
+    const xMax = Math.min(sw, Math.max(p1.x, p2.x));
+    const yMax = Math.min(sh, Math.max(p1.y, p2.y));
+
+    const w = Math.max(1, xMax - xMin);
+    const h = Math.max(1, yMax - yMin);
+
+    const tmp = this.getTempPath();
+    try {
+      // screencapture -R x,y,w,h
+      this.exec(`screencapture -x -R${xMin},${yMin},${w},${h} ${tmp}`);
+      const buf = readFileSync(tmp);
+      return buf.toString("base64");
+    } finally {
+      try {
+        unlinkSync(tmp);
+      } catch {
+        // ignore
+      }
+    }
   }
 
   async click(

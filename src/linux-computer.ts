@@ -62,6 +62,7 @@ const MOUSE_BUTTON_MAP: Record<MouseButton, number> = {
  */
 export class LinuxComputer implements Computer {
   private readonly display: string;
+  private cachedDimensions: [number, number] | null = null;
 
   constructor(display?: string) {
     this.display = display ?? process.env.DISPLAY ?? ":99";
@@ -83,10 +84,16 @@ export class LinuxComputer implements Computer {
   }
 
   async getDimensions(): Promise<[number, number]> {
+    if (this.cachedDimensions) return this.cachedDimensions;
+
     try {
       const geometry = this.exec("xdotool getdisplaygeometry");
-      const [w, h] = geometry.split(/\s+/);
-      return [Number(w), Number(h)];
+      const [w, h] = geometry.split(/\s+/).map(Number);
+      if (w > 0 && h > 0) {
+        this.cachedDimensions = [w, h];
+        return this.cachedDimensions;
+      }
+      throw new Error("Invalid dimensions");
     } catch {
       return [1280, 800]; // fallback
     }
@@ -95,6 +102,22 @@ export class LinuxComputer implements Computer {
   async screenshot(): Promise<string> {
     // ImageMagick `import` grabs the root window and pipes base64 PNG to stdout.
     return this.exec("import -window root png:- | base64 -w 0");
+  }
+
+  async screenshotRegion(p1: Point, p2: Point): Promise<string> {
+    const [sw, sh] = await this.getDimensions();
+    const xMin = Math.max(0, Math.min(p1.x, p2.x));
+    const yMin = Math.max(0, Math.min(p1.y, p2.y));
+    const xMax = Math.min(sw, Math.max(p1.x, p2.x));
+    const yMax = Math.min(sh, Math.max(p1.y, p2.y));
+
+    const w = Math.max(1, xMax - xMin);
+    const h = Math.max(1, yMax - yMin);
+
+    // Geometry format: widthxheight+x+y
+    return this.exec(
+      `import -window root -crop ${w}x${h}+${xMin}+${yMin} png:- | base64 -w 0`,
+    );
   }
 
   async click(

@@ -68,6 +68,34 @@ describe("playwright MCP server", () => {
     expect(buf[3]).toBe(71);
   });
 
+  // -- screenshot_region --------------------------------------------------
+
+  it("screenshot_region returns valid PNG", async () => {
+    const result = await client.callTool("screenshot_region", {
+      x1: 50,
+      y1: 50,
+      x2: 150,
+      y2: 150,
+    });
+    const data = McpTestClient.imageData(result);
+    expect(data.length).toBeGreaterThan(0);
+
+    const buf = Buffer.from(data, "base64");
+    expect(buf[0]).toBe(137);
+    expect(buf[1]).toBe(80);
+  });
+
+  it("screenshot_region handles out-of-bounds gracefully", async () => {
+    const result = await client.callTool("screenshot_region", {
+      x1: -100,
+      y1: -100,
+      x2: 2000,
+      y2: 2000,
+    });
+    const data = McpTestClient.imageData(result);
+    expect(data.length).toBeGreaterThan(0);
+  });
+
   // -- goto + get_current_url ---------------------------------------------
 
   it("goto navigates and get_current_url confirms", async () => {
