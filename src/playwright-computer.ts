@@ -72,6 +72,9 @@ export interface PlaywrightComputerOptions {
 
   /** Viewport / window height. Default `768`. */
   height?: number;
+
+  /** Enable a virtual mouse cursor in the browser. Default `false`. */
+  virtualCursor?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -100,6 +103,7 @@ export class PlaywrightComputer implements Computer {
   private readonly startUrl: string;
   private readonly width: number;
   private readonly height: number;
+  private readonly virtualCursor: boolean;
 
   private browser: Browser | null = null;
   private context: BrowserContext | null = null;
@@ -111,6 +115,7 @@ export class PlaywrightComputer implements Computer {
     this.startUrl = options.startUrl ?? "about:blank";
     this.width = options.width ?? 1024;
     this.height = options.height ?? 768;
+    this.virtualCursor = options.virtualCursor ?? false;
   }
 
   // ---- lifecycle --------------------------------------------------------
@@ -130,6 +135,47 @@ export class PlaywrightComputer implements Computer {
     this.context = await this.browser.newContext({
       viewport: { width: this.width, height: this.height },
     });
+
+    if (this.virtualCursor) {
+      await this.context.addInitScript(`
+        if (window.self === window.top) {
+          function initCursor() {
+            const CURSOR_ID = '__vcursor__';
+            if (document.getElementById(CURSOR_ID)) return;
+
+            const cursor = document.createElement('div');
+            cursor.id = CURSOR_ID;
+            Object.assign(cursor.style, {
+              position: 'fixed',
+              top: '0px',
+              left: '0px',
+              width: '20px',
+              height: '20px',
+              backgroundImage: 'url("data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 28 28\\' fill=\\'black\\' stroke=\\'white\\' stroke-width=\\'1.5\\' stroke-linejoin=\\'round\\' stroke-linecap=\\'round\\'><path d=\\'M3,3l0,21.3l6.3-6.3l3.7,8.7l3.2-1.4l-3.7-8.7l8.7,0L3,3z\\'/></svg>")',
+              backgroundSize: 'cover',
+              pointerEvents: 'none',
+              zIndex: '999999',
+              transform: 'translate(-2px, -2px)',
+            });
+
+            document.body.appendChild(cursor);
+
+            document.addEventListener('mousemove', (e) => {
+              cursor.style.top = e.clientY + 'px';
+              cursor.style.left = e.clientX + 'px';
+            });
+          }
+
+          requestAnimationFrame(function checkBody() {
+            if (document.body) {
+              initCursor();
+            } else {
+              requestAnimationFrame(checkBody);
+            }
+          });
+        }
+      `);
+    }
 
     // Track new pages (popups, target=_blank, etc.)
     this.context.on("page", (newPage) => this.handleNewPage(newPage));

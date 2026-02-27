@@ -22,7 +22,10 @@ export function createComputer(type: ComputerType): Computer {
     case "windows":
       return new WindowsComputer();
     case "playwright":
-      return new PlaywrightComputer({ channel: "chrome" });
+      return new PlaywrightComputer({
+        channel: "chrome",
+        virtualCursor: process.env.VIRTUAL_CURSOR === "true",
+      });
   }
 }
 

@@ -14,6 +14,7 @@
 
 - 🖥️ **Cross-Platform**: Full support for **Linux (X11)**, **macOS (AppleScript)**, and **Windows (PowerShell)**.
 - 🐳 **Docker-First**: Run in a fully isolated Linux desktop environment with VNC access and state persistence.
+- 🖱️ **Virtual Cursor**: Enable a visual mouse cursor in Playwright by setting `VIRTUAL_CURSOR=true`.
 - 🌐 **Web Automation**: Integrated **Playwright** support for high-performance, browser-only computer use.
 - 🛠️ **Full Toolset**:
   - `screenshot`: See exactly what the computer sees.

@@ -14,10 +14,14 @@ export class McpTestClient {
   constructor(private readonly computerType: string) {}
 
   /** Start the server process and connect the MCP client. */
-  async setup(): Promise<void> {
+  async setup(env: Record<string, string> = {}): Promise<void> {
     this.transport = new StdioClientTransport({
       command: "node",
       args: ["dist/index.js", this.computerType],
+      env: {
+        ...process.env,
+        ...env,
+      } as any,
     });
 
     this.client = new Client({ name: "test-client", version: "0.0.1" });

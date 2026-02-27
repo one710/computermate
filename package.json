@@ -23,7 +23,8 @@
     "test:playwright": "vitest run tests/playwright.test.ts",
     "test:integration": "vitest run tests/mcp-server.test.ts",
     "test:docker": "vitest run tests/docker-http.test.ts --testTimeout=180000",
-    "test:all": "vitest run"
+    "test:all": "vitest run",
+    "test:cursor": "vitest run tests/visual-cursor.test.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
