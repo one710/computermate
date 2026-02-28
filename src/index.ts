@@ -9,6 +9,7 @@ import {
   registerTools,
   registerPlaywrightTools,
 } from "./server.js";
+import pkg from "../package.json" with { type: "json" };
 
 // ---------------------------------------------------------------------------
 // CLI argument parsing
@@ -34,11 +35,11 @@ function parseArgs(): ComputerType {
 
 async function main(): Promise<void> {
   const type = parseArgs();
-  const computer = createComputer(type);
+  const computer = createComputer(type, process.env.MAX_SCALING_DIMENSION);
 
   const server = new McpServer({
-    name: "computermate",
-    version: "0.0.1",
+    name: pkg.name,
+    version: pkg.version,
   });
 
   // Register core tools

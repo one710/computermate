@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
-    "ghost-cursor": "^1.4.2",
     "node-screenshots": "^0.2.8",
     "playwright": "^1.50.0",
     "robotjs": "^0.6.0",

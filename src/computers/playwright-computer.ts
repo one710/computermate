@@ -4,8 +4,14 @@ import {
   type BrowserContext,
   type Page,
 } from "playwright";
-import { path as generatePath } from "ghost-cursor";
-import { Computer, Environment, MouseButton, Point } from "./computer.js";
+import { generatePath } from "../utils/mouse-path.js";
+import {
+  Computer,
+  ComputerOptions,
+  Environment,
+  MouseButton,
+  Point,
+} from "./computer.js";
 import { installMouseHelper } from "../utils/mouse-helper.js";
 import { compressImage } from "../utils/compress-image.js";
 
@@ -58,7 +64,7 @@ const TYPING_DELAY_MS = 100;
 // PlaywrightComputer options
 // ---------------------------------------------------------------------------
 
-export interface PlaywrightComputerOptions {
+export interface PlaywrightComputerOptions extends ComputerOptions {
   /** Run the browser headlessly. Default `false`. */
   headless?: boolean;
 
@@ -301,6 +307,7 @@ export class PlaywrightComputer implements Computer {
     for (const key of mapped) {
       await page.keyboard.down(key);
     }
+
     for (const key of mapped.reverse()) {
       await page.keyboard.up(key);
     }

@@ -11,15 +11,19 @@ export type ComputerType = "playwright" | "native";
 // Computer factory
 // ---------------------------------------------------------------------------
 
-export function createComputer(type: ComputerType): Computer {
+export function createComputer(
+  type: ComputerType,
+  maxScalingDimension?: string,
+): Computer {
   if (type === "playwright") {
     return new PlaywrightComputer({
       headless: process.env.HEADLESS === "true",
       virtualCursor: process.env.VIRTUAL_CURSOR === "true",
+      maxScalingDimension,
     });
   }
 
-  return new NativeComputer();
+  return new NativeComputer({ maxScalingDimension });
 }
 
 // ---------------------------------------------------------------------------

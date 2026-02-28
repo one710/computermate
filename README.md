@@ -15,11 +15,11 @@
 
 ## ✨ Features & Highlights
 
-- 🖥️ **Cross-Platform**: Full support for **Linux (X11)**, **macOS (AppleScript)**, and **Windows (PowerShell)**.
+- 🖥️ **Cross-Platform**: Unified support for **Linux**, **macOS**, and **Windows** via a single `native` mode.
 - 🐳 **Docker-First**: Run in a fully isolated Linux desktop environment with VNC access and state persistence.
 - 🖱️ **Virtual Cursor**: Enable a visual mouse cursor in Playwright by setting `VIRTUAL_CURSOR=true`.
 - 🌐 **Web Automation**: Integrated **Playwright** support for high-performance, browser-only computer use.
-- � **Secure Transport**: Supports both `stdio` (local) and `HTTP` (remote/Docker) transports.
+- 📐 **Smart Scaling**: Automatically scale screenshots and coordinates to fit LLM context limits via `MAX_SCALING_DIMENSION`.
 
 ---
 
@@ -27,24 +27,24 @@
 
 ComputerMate exposes the following tools to the LLM:
 
-| Tool                | AI-Friendly Description                                               |
-| :------------------ | :-------------------------------------------------------------------- |
-| `screenshot`        | Take a full screenshot of the current screen or browser viewport.     |
-| `screenshot_region` | Capture a specific rectangular area by providing two diagonal points. |
-| `click`             | Move pointer and click (left, middle, right supported).               |
-| `double_click`      | Rapidly click twice at the given coordinates.                         |
-| `scroll`            | Scroll the window content at (x, y) by given amount.                  |
-| `type`              | Send keyboard text input to the active window.                        |
-| `keypress`          | Send key combinations (e.g. `["ctrl", "c"]`, `["alt", "tab"]`).       |
-| `move`              | Move the mouse pointer without clicking.                              |
-| `drag`              | Drag the mouse from start point along a path of coordinates.          |
-| `wait`              | Pause execution for a set number of milliseconds.                     |
-| `get_dimensions`    | Retrieve the screen or viewport width and height.                     |
-| `get_environment`   | Returns the current platform (`linux`, `mac`, `windows`, `browser`).  |
-| `goto`              | **(Playwright only)** Navigate to a specific URL.                     |
-| `back`              | **(Playwright only)** Go back in history.                             |
-| `forward`           | **(Playwright only)** Go forward in history.                          |
-| `get_current_url`   | **(Playwright only)** Retrieve the current active page URL.           |
+| Tool                | AI-Friendly Description                                                |
+| :------------------ | :--------------------------------------------------------------------- |
+| `screenshot`        | Take a full screenshot of the current screen or browser viewport.      |
+| `screenshot_region` | Capture a specific rectangular area by providing two diagonal points.  |
+| `click`             | Move pointer and click (left, middle, right supported).                |
+| `double_click`      | Rapidly click twice at the given coordinates.                          |
+| `scroll`            | Scroll the window content at (x, y) by given amount.                   |
+| `type`              | Send keyboard text input to the active window.                         |
+| `keypress`          | Send key combinations (e.g. `["ctrl", "c"]`, `["alt", "tab"]`).        |
+| `move`              | Move the mouse pointer without clicking.                               |
+| `drag`              | Drag the mouse from start point along a path of coordinates.           |
+| `wait`              | Pause execution for a set number of milliseconds.                      |
+| `get_dimensions`    | Retrieve the screen or viewport width and height.                      |
+| `get_environment`   | Returns the current platform (`linux`, `macos`, `windows`, `browser`). |
+| `goto`              | **(Playwright only)** Navigate to a specific URL.                      |
+| `back`              | **(Playwright only)** Go back in history.                              |
+| `forward`           | **(Playwright only)** Go forward in history.                           |
+| `get_current_url`   | **(Playwright only)** Retrieve the current active page URL.            |
 
 ---
 
@@ -54,27 +54,11 @@ ComputerMate exposes the following tools to the LLM:
 
 Run the server directly without installing:
 
-# MacOS
-
 ```bash
-npx @one710/computermate mac
-```
+# For local OS interaction (macOS, Windows, Linux)
+npx @one710/computermate native
 
-# Linux
-
-```bash
-npx @one710/computermate linux
-```
-
-# Windows
-
-```bash
-npx @one710/computermate windows
-```
-
-# Playwright (Browser only)
-
-```bash
+# For Playwright (Browser only)
 npx @one710/computermate playwright
 ```
 
@@ -98,26 +82,49 @@ docker-compose up --build
 
 ## 🛠️ Prerequisites & Installation
 
-Depending on your OS, you may need to install a few system dependencies.
-
-### 🐧 Ubuntu / Debian Desktop
+### 🐧 Linux (Ubuntu / Debian Desktop)
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y xvfb xdotool imagemagick
+sudo apt-get install -y libxtst-dev libpng-dev xvfb xdotool
 ```
 
 ### 🍎 macOS
 
-```bash
-# Requires AppleScript (built-in)
-# For better mouse control:
-brew install cliclick
-```
+Ensure you have granted **Accessibility** permissions to your terminal or IDE (e.g., Cursor, VS Code, iTerm2) in _System Settings > Privacy & Security > Accessibility_.
 
 ### 🪟 Windows
 
-No external binaries are required! ComputerMate uses native PowerShell commands and `SendKeys` to interact with the OS.
+No external binaries are required!
+
+---
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+| Variable                | Purpose                                                                             | Default |
+| :---------------------- | :---------------------------------------------------------------------------------- | :------ |
+| `MAX_SCALING_DIMENSION` | Caps the max width or height of screenshots (e.g., `1024x768`). Scales coordinates. | None    |
+| `VIRTUAL_CURSOR`        | **(Playwright)** Shows a visual red dot where the "mouse" is.                       | `false` |
+| `HEADLESS`              | **(Playwright)** Runs the browser in headless mode.                                 | `false` |
+
+---
+
+## 🏗️ Local Development
+
+To run from source:
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Build the project
+npm run build
+
+# 3. Run the server
+node dist/index.js native
+```
 
 ---
 
@@ -142,32 +149,18 @@ Add this to your `claude_desktop_config.json` (or equivalent MCP client config):
   "mcpServers": {
     "computermate": {
       "command": "npx",
-      "args": ["-y", "@one710/computermate", "mac"]
+      "args": ["-y", "@one710/computermate", "native"],
+      "env": {
+        "MAX_SCALING_DIMENSION": "1024x768"
+      }
     }
   }
 }
 ```
 
-### 🐳 Docker (HTTP)
-
-If you're running ComputerMate in Docker, you'll first need to start the container and expose the MCP port (3000):
-
-```bash
-docker run -d --name computermate -p 3000:3000 ghcr.io/one710/computermate:latest
-```
-
-To test the connection, you can use the **MCP Inspector**:
-
-```bash
-npx @modelcontextprotocol/inspector http://localhost:3000
-```
-
-> [!NOTE]
-> For production use in clients like Claude Desktop, ensure your client supports HTTP MCP transports natively, or use an MCP-to-stdio bridge like `mcp-remote`.
-
 ### 🌉 Stdio-to-Docker Bridge (mcp-remote)
 
-If your MCP client (like Cursor or older versions of Claude Desktop) only supports `stdio` transports, you can bridge it to the ComputerMate Docker container using `mcp-remote`:
+If your MCP client (like Cursor or older versions of Claude Desktop) only supports `stdio` transports, you can bridge it to the ComputerMate Docker container:
 
 ```json
 {

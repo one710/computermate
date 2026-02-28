@@ -1,7 +1,13 @@
 import robot from "robotjs";
 import { Monitor } from "node-screenshots";
-import { path as generatePath } from "ghost-cursor";
-import { Computer, Environment, MouseButton, Point } from "./computer.js";
+import { generatePath } from "../utils/mouse-path.js";
+import {
+  Computer,
+  ComputerOptions,
+  Environment,
+  MouseButton,
+  Point,
+} from "./computer.js";
 import { compressImage } from "../utils/compress-image.js";
 
 // ---------------------------------------------------------------------------
@@ -50,6 +56,8 @@ const KEY_MAP: Record<string, string> = {
 const TYPING_CHUNK_SIZE = 3;
 const TYPING_DELAY_MS = 100;
 
+export interface NativeComputerOptions extends ComputerOptions {}
+
 /**
  * Unified Computer implementation using robotjs and node-screenshots.
  * Works across MacOS, Windows, and Linux.
@@ -57,10 +65,55 @@ const TYPING_DELAY_MS = 100;
 export class NativeComputer implements Computer {
   private cachedDimensions: [number, number] | null = null;
   private lastMousePos: Point;
+  private targetWidth: number | null = null;
+  private targetHeight: number | null = null;
+  private scalingFactor: number = 1;
 
-  constructor() {
+  constructor(options: NativeComputerOptions = {}) {
     const pos = robot.getMousePos();
     this.lastMousePos = { x: pos.x, y: pos.y };
+
+    if (options.maxScalingDimension) {
+      const [w, h] = options.maxScalingDimension
+        .split("x")
+        .map((s) => parseInt(s, 10));
+      this.initializeScaling(w || null, h || null);
+    }
+  }
+
+  private async initializeScaling(
+    maxW: number | null,
+    maxH: number | null,
+  ): Promise<void> {
+    const [realW, realH] = await this.getDimensions();
+    const ratio = realW / realH;
+
+    if (maxW && maxH) {
+      // Fit into both, preserving aspect ratio
+      const scaleW = maxW / realW;
+      const scaleH = maxH / realH;
+      const scale = Math.min(scaleW, scaleH);
+
+      if (scale < 1) {
+        this.scalingFactor = scale;
+        this.targetWidth = Math.round(realW * scale);
+        this.targetHeight = Math.round(realH * scale);
+      }
+    } else if (maxW && maxW < realW) {
+      this.scalingFactor = maxW / realW;
+      this.targetWidth = maxW;
+      this.targetHeight = Math.round(maxW / ratio);
+    } else if (maxH && maxH < realH) {
+      this.scalingFactor = maxH / realH;
+      this.targetHeight = maxH;
+      this.targetWidth = Math.round(maxH * ratio);
+    }
+
+    if (this.targetWidth) {
+      console.log(
+        `Scaling enabled: ${realW}x${realH} -> ${this.targetWidth}x${this.targetHeight} (factor: ${this.scalingFactor.toFixed(4)})`,
+      );
+    }
   }
 
   getEnvironment(): Environment {
@@ -75,6 +128,10 @@ export class NativeComputer implements Computer {
   }
 
   async getDimensions(): Promise<[number, number]> {
+    if (this.targetWidth && this.targetHeight) {
+      return [this.targetWidth, this.targetHeight];
+    }
+
     if (this.cachedDimensions) return this.cachedDimensions;
 
     try {
@@ -85,6 +142,7 @@ export class NativeComputer implements Computer {
         this.cachedDimensions = [primary.width(), primary.height()];
         return this.cachedDimensions;
       }
+
       throw new Error("No monitor found");
     } catch (error) {
       console.error("Failed to get dimensions:", error);
@@ -99,7 +157,13 @@ export class NativeComputer implements Computer {
     if (!primary) throw new Error("No monitor found");
     const image = await primary.captureImage();
     const pngBuf = await image.toPng();
-    const compressed = await compressImage(pngBuf);
+
+    const resize =
+      this.targetWidth && this.targetHeight
+        ? { width: this.targetWidth, height: this.targetHeight }
+        : undefined;
+
+    const compressed = await compressImage(pngBuf, resize);
     return compressed.toString("base64");
   }
 
@@ -107,14 +171,17 @@ export class NativeComputer implements Computer {
     await this.isWithinBounds(p1.x, p1.y);
     await this.isWithinBounds(p2.x, p2.y);
 
+    const realP1 = this.toRealCoordinate(p1);
+    const realP2 = this.toRealCoordinate(p2);
+
     const monitors = Monitor.all();
     const primary = monitors.find((m: Monitor) => m.isPrimary()) || monitors[0];
     if (!primary) throw new Error("No monitor found");
 
-    const xMin = Math.max(0, Math.min(p1.x, p2.x));
-    const yMin = Math.max(0, Math.min(p1.y, p2.y));
-    const xMax = Math.min(primary.width(), Math.max(p1.x, p2.x));
-    const yMax = Math.min(primary.height(), Math.max(p1.y, p2.y));
+    const xMin = Math.max(0, Math.min(realP1.x, realP2.x));
+    const yMin = Math.max(0, Math.min(realP1.y, realP2.y));
+    const xMax = Math.min(primary.width(), Math.max(realP1.x, realP2.x));
+    const yMax = Math.min(primary.height(), Math.max(realP1.y, realP2.y));
 
     const w = Math.max(1, xMax - xMin);
     const h = Math.max(1, yMax - yMin);
@@ -122,7 +189,15 @@ export class NativeComputer implements Computer {
     const image = await primary.captureImage();
     const cropped = await image.crop(xMin, yMin, w, h);
     const pngBuf = await cropped.toPng();
-    const compressed = await compressImage(pngBuf);
+
+    const resize = this.targetWidth
+      ? {
+          width: Math.round(w * this.scalingFactor),
+          height: Math.round(h * this.scalingFactor),
+        }
+      : undefined;
+
+    const compressed = await compressImage(pngBuf, resize);
     return compressed.toString("base64");
   }
 
@@ -167,13 +242,14 @@ export class NativeComputer implements Computer {
 
   async move(x: number, y: number): Promise<void> {
     await this.isWithinBounds(x, y);
-    const target = { x, y };
-    const trajectory = generatePath(this.lastMousePos, target);
+    const realTarget = this.toRealCoordinate({ x, y });
+
+    const trajectory = generatePath(this.lastMousePos, realTarget);
 
     for (const point of trajectory) {
       robot.moveMouse(point.x, point.y);
     }
-    this.lastMousePos = target;
+    this.lastMousePos = realTarget;
   }
 
   private async isWithinBounds(x: number, y: number): Promise<void> {
@@ -183,6 +259,13 @@ export class NativeComputer implements Computer {
         `Coordinates (${x}, ${y}) are outside screen bounds (${width}x${height})`,
       );
     }
+  }
+
+  private toRealCoordinate(p: Point): Point {
+    return {
+      x: Math.round(p.x / this.scalingFactor),
+      y: Math.round(p.y / this.scalingFactor),
+    };
   }
 
   async keypress(keys: string[]): Promise<void> {

@@ -18,6 +18,14 @@ export interface Point {
   y: number;
 }
 
+export interface ComputerOptions {
+  /**
+   * Optional maximum scaling dimension in the format "WIDTHxHEIGHT".
+   * If specified, the computer will scale coordinates and screenshots to fit.
+   */
+  maxScalingDimension?: string;
+}
+
 // ---------------------------------------------------------------------------
 // Computer interface
 // ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
-import { LinuxComputer } from "../src/linux-computer.js";
+import { NativeComputer } from "../src/computers/native-computer.js";
 import { registerTools } from "../src/server.js";
 
 // ---------------------------------------------------------------------------
@@ -13,7 +13,7 @@ import { registerTools } from "../src/server.js";
 
 let client: Client;
 let server: McpServer;
-let computer: LinuxComputer;
+let computer: NativeComputer;
 
 function text(result: CallToolResult): string {
   const block = result.content.find((c: { type: string }) => c.type === "text");
@@ -31,7 +31,7 @@ function imageData(result: CallToolResult): string {
 
 describe("in-memory MCP server (linux)", () => {
   beforeAll(async () => {
-    computer = new LinuxComputer();
+    computer = new NativeComputer();
 
     server = new McpServer({ name: "computermate", version: "0.0.1" });
     registerTools(server, computer);
@@ -72,11 +72,17 @@ describe("in-memory MCP server (linux)", () => {
 
   // -- get_environment ----------------------------------------------------
 
-  it("get_environment returns linux", async () => {
+  it("get_environment returns correct platform", async () => {
     const result = (await client.callTool({
       name: "get_environment",
     })) as CallToolResult;
-    expect(text(result)).toBe("linux");
+    const expected =
+      process.platform === "darwin"
+        ? "macos"
+        : process.platform === "win32"
+          ? "windows"
+          : "linux";
+    expect(text(result)).toBe(expected);
   });
 
   // -- get_dimensions -----------------------------------------------------
