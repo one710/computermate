@@ -172,6 +172,7 @@ describe("docker HTTP MCP server", () => {
       name: "screenshot_region",
       arguments: { x1: -100, y1: -100, x2: 3000, y2: 3000 },
     })) as CallToolResult;
+    console.dir(result, { depth: null });
     expect(result.isError).toBe(true);
     expect(text(result)).toMatch(/outside/i);
   });
