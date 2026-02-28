@@ -29,16 +29,16 @@ jobs:
           node-version: 22
           cache: yarn
 
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
-
-      # -- OS-specific deps (native only) ------------------------------------
-
       - name: Install Linux deps
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb xdotool imagemagick
+          sudo apt-get install -y imagemagick libpng-dev libx11-dev libxtst-dev xdotool xvfb
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+
+      # -- OS-specific deps (native only) ------------------------------------
 
       - name: Install macOS deps
         if: matrix.suite == 'native' && runner.os == 'macOS'
@@ -90,6 +90,11 @@ jobs:
           node-version: 22
           cache: yarn
 
+      - name: Install Linux deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxtst-dev libpng-dev libx11-dev
+
       - run: yarn install --frozen-lockfile
 
       - name: Build Docker image
@@ -115,13 +120,13 @@ jobs:
           node-version: 22
           cache: yarn
 
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
-
       - name: Install Linux deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb xdotool imagemagick
+          sudo apt-get install -y xvfb xdotool imagemagick libxtst-dev libpng-dev libx11-dev
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
 
       - name: Run MCP server integration tests
         run: xvfb-run --auto-servernum yarn vitest run tests/mcp-server.test.ts --reporter=verbose

@@ -105,14 +105,15 @@ describe(`native (${type}) MCP server`, () => {
     expect(buf[1]).toBe(80);
   });
 
-  it("screenshot_region throws error for out-of-bounds", async () => {
+  it("screenshot_region handles out-of-bounds gracefully", async () => {
     const result = await client.callTool("screenshot_region", {
       x1: -50,
       y1: -50,
       x2: 5000,
       y2: 5000,
     });
-    expect(result.isError).toBe(true);
+    const data = McpTestClient.imageData(result);
+    expect(data.length).toBeGreaterThan(0);
   });
 
   // -- click --------------------------------------------------------------

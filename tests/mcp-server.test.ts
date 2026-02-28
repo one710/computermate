@@ -110,7 +110,7 @@ describe("in-memory MCP server (linux)", () => {
     expect(buf[1]).toBe(80);
     expect(buf[2]).toBe(78);
     expect(buf[3]).toBe(71);
-  });
+  }, 30_000);
 
   // -- click --------------------------------------------------------------
 

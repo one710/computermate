@@ -5,8 +5,12 @@ ENV DISPLAY=:99
 
 # 1) Install Xfce, x11vnc, Xvfb, xdotool, etc.
 RUN apt-get update && apt-get install -y \
+    build-essential \
     curl \
     imagemagick \
+    libpng-dev \
+    libx11-dev \
+    libxtst-dev \
     pulseaudio \
     software-properties-common \
     sudo \
@@ -58,10 +62,10 @@ WORKDIR /home/one710
 RUN x11vnc -storepasswd one710 /home/one710/.vncpass
 
 # 7) Copy project and build
-COPY --chown=one710:one710 package.json yarn.lock ./
+COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
-COPY --chown=one710:one710 src/ ./src/
-COPY --chown=one710:one710 tsconfig.json ./
+COPY src/ ./src/
+COPY tsconfig.json ./
 RUN yarn build
 
 # 8) Expose VNC + MCP ports
