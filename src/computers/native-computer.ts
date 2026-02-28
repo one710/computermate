@@ -46,6 +46,9 @@ const KEY_MAP: Record<string, string> = {
   f12: "f12",
 };
 
+const TYPING_CHUNK_SIZE = 3;
+const TYPING_DELAY_MS = 100;
+
 /**
  * Unified Computer implementation using robotjs and node-screenshots.
  * Works across MacOS, Windows, and Linux.
@@ -99,6 +102,9 @@ export class NativeComputer implements Computer {
   }
 
   async screenshotRegion(p1: Point, p2: Point): Promise<string> {
+    await this.isWithinBounds(p1.x, p1.y);
+    await this.isWithinBounds(p2.x, p2.y);
+
     const monitors = Monitor.all();
     const primary = monitors.find((m: Monitor) => m.isPrimary()) || monitors[0];
     if (!primary) throw new Error("No monitor found");
@@ -122,11 +128,13 @@ export class NativeComputer implements Computer {
     y: number,
     button: MouseButton = "left",
   ): Promise<void> {
+    await this.isWithinBounds(x, y);
     await this.move(x, y);
     robot.mouseClick(button);
   }
 
   async doubleClick(x: number, y: number): Promise<void> {
+    await this.isWithinBounds(x, y);
     await this.move(x, y);
     robot.mouseClick("left", true);
   }
@@ -137,12 +145,17 @@ export class NativeComputer implements Computer {
     scrollX: number,
     scrollY: number,
   ): Promise<void> {
+    await this.isWithinBounds(x, y);
     await this.move(x, y);
     robot.scrollMouse(scrollX, scrollY);
   }
 
   async type(text: string): Promise<void> {
-    robot.typeString(text);
+    for (let i = 0; i < text.length; i += TYPING_CHUNK_SIZE) {
+      const chunk = text.slice(i, i + TYPING_CHUNK_SIZE);
+      robot.typeString(chunk);
+      await this.wait(chunk.length * TYPING_DELAY_MS);
+    }
   }
 
   async wait(ms = 1000): Promise<void> {
@@ -150,6 +163,7 @@ export class NativeComputer implements Computer {
   }
 
   async move(x: number, y: number): Promise<void> {
+    await this.isWithinBounds(x, y);
     const target = { x, y };
     const trajectory = generatePath(this.lastMousePos, target);
 
@@ -157,6 +171,15 @@ export class NativeComputer implements Computer {
       robot.moveMouse(point.x, point.y);
     }
     this.lastMousePos = target;
+  }
+
+  private async isWithinBounds(x: number, y: number): Promise<void> {
+    const [width, height] = await this.getDimensions();
+    if (x < 0 || x > width || y < 0 || y > height) {
+      throw new Error(
+        `Coordinates (${x}, ${y}) are outside screen bounds (${width}x${height})`,
+      );
+    }
   }
 
   async keypress(keys: string[]): Promise<void> {
@@ -180,6 +203,10 @@ export class NativeComputer implements Computer {
 
   async drag(path: Point[]): Promise<void> {
     if (path.length < 2) return;
+
+    for (const pt of path) {
+      await this.isWithinBounds(pt.x, pt.y);
+    }
 
     await this.move(path[0].x, path[0].y);
     robot.mouseToggle("down", "left");
