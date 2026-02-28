@@ -11,7 +11,7 @@
 
 export type MouseButton = "left" | "middle" | "right";
 
-export type Environment = "windows" | "mac" | "linux" | "browser";
+export type Environment = "windows" | "macos" | "linux" | "browser";
 
 export interface Point {
   x: number;

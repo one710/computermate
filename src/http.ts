@@ -4,7 +4,7 @@ import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { LinuxComputer } from "./linux-computer.js";
+import { NativeComputer } from "./computers/native-computer.js";
 import { registerTools } from "./server.js";
 
 // ---------------------------------------------------------------------------
@@ -14,7 +14,7 @@ import { registerTools } from "./server.js";
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 
 async function main() {
-  const computer = new LinuxComputer();
+  const computer = new NativeComputer();
   const server = new McpServer({ name: "computermate", version: "0.0.1" });
   registerTools(server, computer);
 

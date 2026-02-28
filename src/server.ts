@@ -1,33 +1,25 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-import type { Computer } from "./computer.js";
-import { LinuxComputer } from "./linux-computer.js";
-import { MacComputer } from "./mac-computer.js";
-import { WindowsComputer } from "./windows-computer.js";
-import { PlaywrightComputer } from "./playwright-computer.js";
+import type { Computer } from "./computers/computer.js";
+import { PlaywrightComputer } from "./computers/playwright-computer.js";
+import { NativeComputer } from "./computers/native-computer.js";
 
-export type ComputerType = "linux" | "mac" | "windows" | "playwright";
+export type ComputerType = "playwright" | "native";
 
 // ---------------------------------------------------------------------------
 // Computer factory
 // ---------------------------------------------------------------------------
 
 export function createComputer(type: ComputerType): Computer {
-  switch (type) {
-    case "linux":
-      return new LinuxComputer();
-    case "mac":
-      return new MacComputer();
-    case "windows":
-      return new WindowsComputer();
-    case "playwright":
-      return new PlaywrightComputer({
-        channel: "chrome",
-        headless: process.env.HEADLESS === "true",
-        virtualCursor: process.env.VIRTUAL_CURSOR === "true",
-      });
+  if (type === "playwright") {
+    return new PlaywrightComputer({
+      headless: process.env.HEADLESS === "true",
+      virtualCursor: process.env.VIRTUAL_CURSOR === "true",
+    });
   }
+
+  return new NativeComputer();
 }
 
 // ---------------------------------------------------------------------------

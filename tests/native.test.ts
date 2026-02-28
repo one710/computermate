@@ -5,12 +5,13 @@ import { McpTestClient } from "./test-helper.js";
 // Determine which native computer type to test based on the runner OS
 // ---------------------------------------------------------------------------
 
-function nativeType(): "linux" | "mac" | "windows" {
+/** Detect the expected environment string returned by the server. */
+function expectedEnv(): string {
   switch (process.platform) {
     case "linux":
       return "linux";
     case "darwin":
-      return "mac";
+      return "macos";
     case "win32":
       return "windows";
     default:
@@ -18,8 +19,8 @@ function nativeType(): "linux" | "mac" | "windows" {
   }
 }
 
-const type = nativeType();
-const client = new McpTestClient(type);
+const type = expectedEnv();
+const client = new McpTestClient("native");
 
 describe(`native (${type}) MCP server`, () => {
   beforeAll(async () => {

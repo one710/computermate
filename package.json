@@ -24,11 +24,14 @@
     "test:integration": "vitest run tests/mcp-server.test.ts",
     "test:docker": "vitest run tests/docker-http.test.ts --testTimeout=180000",
     "test:all": "vitest run",
-    "test:cursor": "vitest run tests/visual-cursor.test.ts"
+    "test:cursor": "vitest run tests/virtual-cursor.test.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
+    "ghost-cursor": "^1.4.2",
+    "node-screenshots": "^0.2.8",
     "playwright": "^1.50.0",
+    "robotjs": "^0.6.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

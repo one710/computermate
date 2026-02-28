@@ -4,7 +4,9 @@ import {
   type BrowserContext,
   type Page,
 } from "playwright";
+import { path as generatePath } from "ghost-cursor";
 import { Computer, Environment, MouseButton, Point } from "./computer.js";
+import { installMouseHelper } from "../utils/mouse-helper.js";
 
 // ---------------------------------------------------------------------------
 // CUA / friendly key names → Playwright key identifiers
@@ -108,6 +110,7 @@ export class PlaywrightComputer implements Computer {
   private browser: Browser | null = null;
   private context: BrowserContext | null = null;
   private page: Page | null = null;
+  private lastMousePos: Point = { x: 0, y: 0 };
 
   constructor(options: PlaywrightComputerOptions = {}) {
     this.headless = options.headless ?? false;
@@ -136,45 +139,8 @@ export class PlaywrightComputer implements Computer {
       viewport: { width: this.width, height: this.height },
     });
 
-    if (this.virtualCursor) {
-      await this.context.addInitScript(`
-        if (window.self === window.top) {
-          function initCursor() {
-            const CURSOR_ID = '__vcursor__';
-            if (document.getElementById(CURSOR_ID)) return;
-
-            const cursor = document.createElement('div');
-            cursor.id = CURSOR_ID;
-            Object.assign(cursor.style, {
-              position: 'fixed',
-              top: '0px',
-              left: '0px',
-              width: '20px',
-              height: '20px',
-              backgroundImage: 'url("data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 28 28\\' fill=\\'black\\' stroke=\\'white\\' stroke-width=\\'1.5\\' stroke-linejoin=\\'round\\' stroke-linecap=\\'round\\'><path d=\\'M3,3l0,21.3l6.3-6.3l3.7,8.7l3.2-1.4l-3.7-8.7l8.7,0L3,3z\\'/></svg>")',
-              backgroundSize: 'cover',
-              pointerEvents: 'none',
-              zIndex: '999999',
-              transform: 'translate(-2px, -2px)',
-            });
-
-            document.body.appendChild(cursor);
-
-            document.addEventListener('mousemove', (e) => {
-              cursor.style.top = e.clientY + 'px';
-              cursor.style.left = e.clientX + 'px';
-            });
-          }
-
-          requestAnimationFrame(function checkBody() {
-            if (document.body) {
-              initCursor();
-            } else {
-              requestAnimationFrame(checkBody);
-            }
-          });
-        }
-      `);
+    if (this.virtualCursor && this.context) {
+      await installMouseHelper(this.context);
     }
 
     // Track new pages (popups, target=_blank, etc.)
@@ -259,6 +225,8 @@ export class PlaywrightComputer implements Computer {
     button: MouseButton = "left",
   ): Promise<void> {
     const page = this.requirePage();
+    await this.move(x, y);
+
     const mapping: Record<string, "left" | "right" | "middle"> = {
       left: "left",
       right: "right",
@@ -269,6 +237,7 @@ export class PlaywrightComputer implements Computer {
 
   async doubleClick(x: number, y: number): Promise<void> {
     const page = this.requirePage();
+    await this.move(x, y);
     await page.mouse.dblclick(x, y);
   }
 
@@ -294,7 +263,13 @@ export class PlaywrightComputer implements Computer {
 
   async move(x: number, y: number): Promise<void> {
     const page = this.requirePage();
-    await page.mouse.move(x, y);
+    const target = { x, y };
+    const trajectory = generatePath(this.lastMousePos, target);
+
+    for (const point of trajectory) {
+      await page.mouse.move(point.x, point.y);
+    }
+    this.lastMousePos = target;
   }
 
   async keypress(keys: string[]): Promise<void> {
@@ -314,10 +289,10 @@ export class PlaywrightComputer implements Computer {
     if (path.length === 0) return;
     const page = this.requirePage();
 
-    await page.mouse.move(path[0].x, path[0].y);
+    await this.move(path[0].x, path[0].y);
     await page.mouse.down();
     for (const { x, y } of path.slice(1)) {
-      await page.mouse.move(x, y);
+      await this.move(x, y);
     }
     await page.mouse.up();
   }

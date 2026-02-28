@@ -2,7 +2,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { PlaywrightComputer } from "./playwright-computer.js";
+import { PlaywrightComputer } from "./computers/playwright-computer.js";
 import {
   ComputerType,
   createComputer,
@@ -14,14 +14,14 @@ import {
 // CLI argument parsing
 // ---------------------------------------------------------------------------
 
-const VALID_TYPES: ComputerType[] = ["linux", "mac", "windows", "playwright"];
+const VALID_TYPES: ComputerType[] = ["playwright", "native"];
 
 function parseArgs(): ComputerType {
   const arg = process.argv[2];
   if (!arg || !VALID_TYPES.includes(arg as ComputerType)) {
     console.error(
       `Usage: computermate <${VALID_TYPES.join(" | ")}>\n` +
-        `  e.g. computermate linux`,
+        `  e.g. computermate native`,
     );
     process.exit(1);
   }

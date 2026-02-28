@@ -31,7 +31,7 @@ describe("virtual cursor visual verification", () => {
     for (const point of points) {
       await client.callTool("move", point);
       // Wait a bit to let the script update the cursor position
-      await client.callTool("wait", { ms: 500 });
+      await client.callTool("wait", { ms: 1000 });
 
       const screenshot = await client.callTool("screenshot");
       const base64 = McpTestClient.imageData(screenshot);
@@ -49,7 +49,7 @@ describe("virtual cursor visual verification", () => {
         { x: 400, y: 400 },
       ],
     });
-    await client.callTool("wait", { ms: 500 });
+    await client.callTool("wait", { ms: 1000 });
     await client.callTool("screenshot");
 
     console.log("Visual verification sequence completed.");
