@@ -174,6 +174,8 @@ export class NativeComputer implements Computer {
   }
 
   async screenshotRegion(p1: Point, p2: Point): Promise<string> {
+    await this.isWithinBounds(p1.x, p1.y);
+    await this.isWithinBounds(p2.x, p2.y);
     const realP1 = this.toRealCoordinate(p1);
     const realP2 = this.toRealCoordinate(p2);
 

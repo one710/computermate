@@ -85,15 +85,15 @@ describe("playwright MCP server", () => {
     expect(buf[1]).toBe(80);
   });
 
-  it("screenshot_region handles out-of-bounds gracefully", async () => {
+  it("screenshot_region rejects out-of-bounds coordinates", async () => {
     const result = await client.callTool("screenshot_region", {
       x1: -100,
       y1: -100,
       x2: 2000,
       y2: 2000,
     });
-    const data = McpTestClient.imageData(result);
-    expect(data.length).toBeGreaterThan(0);
+    expect(result.isError).toBe(true);
+    expect(McpTestClient.text(result)).toMatch(/outside/i);
   });
 
   // -- goto + get_current_url ---------------------------------------------

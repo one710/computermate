@@ -103,12 +103,12 @@ No external binaries are required!
 
 ### Environment Variables
 
-| Variable                | Purpose                                                                              | Default  |
-| :---------------------- | :----------------------------------------------------------------------------------- | :------- |
-| `COMPUTER_TYPE`         | **(Docker / HTTP)** Sets the computer backend: `native` or `playwright`.             | `native` |
-| `MAX_SCALING_DIMENSION` | Caps the max width or height of screenshots (e.g., `1024x768`). Scales coordinates.  | None     |
-| `VIRTUAL_CURSOR`        | **(Playwright)** Shows a visual red dot where the "mouse" is.                        | `false`  |
-| `HEADLESS`              | **(Playwright)** Runs the browser in headless mode.                                  | `false`  |
+| Variable                | Purpose                                                                             | Default  |
+| :---------------------- | :---------------------------------------------------------------------------------- | :------- |
+| `COMPUTER_TYPE`         | **(Docker / HTTP)** Sets the computer backend: `native` or `playwright`.            | `native` |
+| `MAX_SCALING_DIMENSION` | Caps the max width or height of screenshots (e.g., `1024x768`). Scales coordinates. | None     |
+| `VIRTUAL_CURSOR`        | **(Playwright)** Shows a visual red dot where the "mouse" is.                       | `false`  |
+| `HEADLESS`              | **(Playwright)** Runs the browser in headless mode.                                 | `false`  |
 
 ---
 
