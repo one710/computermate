@@ -142,6 +142,9 @@ export class PlaywrightComputer implements Computer {
         `--window-size=${this.width},${this.height}`,
         "--disable-extensions",
         "--disable-file-system",
+        ...(process.env.CI || process.platform === "linux"
+          ? ["--no-sandbox", "--disable-setuid-sandbox"]
+          : []),
       ],
     });
 

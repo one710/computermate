@@ -167,13 +167,13 @@ describe("docker HTTP MCP server", () => {
     expect(buf[1]).toBe(80);
   });
 
-  it("screenshot_region handles out-of-bounds gracefully", async () => {
+  it("screenshot_region rejects out-of-bounds coordinates", async () => {
     const result = (await client.callTool({
       name: "screenshot_region",
       arguments: { x1: -100, y1: -100, x2: 3000, y2: 3000 },
     })) as CallToolResult;
-    const data = imageData(result);
-    expect(data.length).toBeGreaterThan(0);
+    expect(result.isError).toBe(true);
+    expect(text(result)).toMatch(/outside/i);
   });
 
   // -- click --------------------------------------------------------------
