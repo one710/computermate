@@ -25,20 +25,12 @@ RUN apt-get update && apt-get install -y \
     && apt-get remove -y light-locker xfce4-screensaver xfce4-power-manager || true \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 2) Install Google Chrome (only support amd64)
-RUN apt-get update && apt-get install -y \
-    fonts-liberation gnupg libasound2 libgbm1 libgtk-3-0 libnss3 libu2f-udev libvulkan1 xdg-utils wget && \
-    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && apt-get install -y google-chrome-stable && \
-    # Create a wrapper to handle --no-sandbox
-    mv /usr/bin/google-chrome-stable /usr/bin/google-chrome-stable.real && \
-    printf '#!/bin/bash\nexec /usr/bin/google-chrome-stable.real --no-sandbox --disable-dev-shm-usage --disable-gpu "$@"\n' > /usr/bin/google-chrome-stable && \
-    chmod +x /usr/bin/google-chrome-stable && \
-    # Set as default browser
-    update-alternatives --install /usr/bin/x-www-browser x-www-browser /usr/bin/google-chrome-stable 100 && \
-    update-alternatives --set x-www-browser /usr/bin/google-chrome-stable && \
-    rm -rf /var/lib/apt/lists/*
+# 2) Install Firefox ESR
+RUN add-apt-repository ppa:mozillateam/ppa \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends firefox-esr \
+    && update-alternatives --set x-www-browser /usr/bin/firefox-esr \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 3) Install Node.js 22
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
@@ -51,10 +43,7 @@ COPY .docker/supervisor.conf /etc/supervisor/conf.d/computermate.conf
 
 # 5) Create non-root sudoer
 RUN useradd -ms /bin/bash one710 \
-    && echo "one710 ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
-    && mkdir -p /home/one710/.config/xfce4 \
-    && echo 'WebBrowser=google-chrome' > /home/one710/.config/xfce4/helpers.rc \
-    && chown -R one710:one710 /home/one710/.config
+    && echo "one710 ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER one710
 WORKDIR /home/one710
 
