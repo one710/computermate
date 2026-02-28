@@ -11,7 +11,7 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 const IMAGE = "computermate";
 const CONTAINER = "computermate-test";
 const HOST_PORT = 13710;
-const MCP_URL = `http://localhost:${HOST_PORT}`;
+const BASE_URL = `http://localhost:${HOST_PORT}`;
 
 // How long to wait for the container's MCP server to become ready (ms)
 const STARTUP_TIMEOUT = 60_000;
@@ -76,10 +76,10 @@ describe("docker HTTP MCP server", () => {
     );
 
     // Wait for the MCP HTTP server inside the container to be ready
-    await waitForServer(MCP_URL, STARTUP_TIMEOUT);
+    await waitForServer(BASE_URL, STARTUP_TIMEOUT);
 
     // Connect MCP client via Streamable HTTP
-    transport = new StreamableHTTPClientTransport(new URL(MCP_URL));
+    transport = new StreamableHTTPClientTransport(new URL(`${BASE_URL}/mcp`));
     client = new Client({ name: "docker-test-client", version: "0.0.1" });
     await client.connect(transport);
   }, 120_000); // 2 min timeout for docker + startup

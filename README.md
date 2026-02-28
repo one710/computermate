@@ -165,13 +165,14 @@ If your MCP client (like Cursor or older versions of Claude Desktop) only suppor
 ```json
 {
   "mcpServers": {
-    "computermate-docker": {
+    "computermate": {
       "command": "npx",
       "args": [
         "-y",
         "mcp-remote@latest",
-        "http://localhost:3000/sse",
-        "--allow-http"
+        "http://localhost:3000/mcp",
+        "--transport",
+        "http-only"
       ]
     }
   }

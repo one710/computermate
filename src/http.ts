@@ -1,71 +1,65 @@
 #!/usr/bin/env node
-
-import { createServer } from "node:http";
-import { randomUUID } from "node:crypto";
+import express from "express";
+import type { Request, Response } from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { NativeComputer } from "./computers/native-computer.js";
-import { registerTools } from "./server.js";
+import { createComputer, registerTools } from "./server.js";
 
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
 
+const COMPUTER_TYPE = (process.env.COMPUTER_TYPE as any) || "native";
+const MAX_SCALING_DIMENSION = process.env.MAX_SCALING_DIMENSION;
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 
-async function main() {
-  const computer = new NativeComputer();
-  const server = new McpServer({ name: "computermate", version: "0.0.1" });
+// Share the computer instance - it's a wrapper for system calls and doesn't hold per-request state
+const computer = createComputer(COMPUTER_TYPE, MAX_SCALING_DIMENSION);
+
+function getMcpServer() {
+  const server = new McpServer({
+    name: "computermate",
+    version: "0.3.0",
+  });
   registerTools(server, computer);
-
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: () => randomUUID(),
-  });
-
-  await server.connect(transport);
-
-  const httpServer = createServer(async (req, res) => {
-    // CORS headers
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept");
-
-    if (req.method === "OPTIONS") {
-      res.writeHead(204);
-      res.end();
-      return;
-    }
-
-    try {
-      await transport.handleRequest(req, res);
-    } catch (err) {
-      console.error(`Error handling ${req.method} ${req.url}:`, err);
-      if (!res.headersSent) {
-        res.writeHead(500, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Internal Server Error" }));
-      }
-    }
-  });
-
-  httpServer.listen(PORT, () => {
-    console.log(`computermate MCP server (HTTP) listening on port ${PORT}`);
-  });
-
-  process.on("SIGINT", () => {
-    httpServer.close();
-    process.exit(0);
-  });
-
-  process.on("uncaughtException", (err) => {
-    console.error("Uncaught Exception:", err);
-  });
-
-  process.on("unhandledRejection", (reason) => {
-    console.error("Unhandled Rejection:", reason);
-  });
+  return server;
 }
 
-main().catch((err) => {
-  console.error("Fatal:", err);
-  process.exit(1);
+const app = express();
+
+app.use(express.json());
+
+app.post("/mcp", async (req: Request, res: Response) => {
+  const server = getMcpServer();
+  try {
+    const transport = new StreamableHTTPServerTransport();
+    await server.connect(transport);
+    await transport.handleRequest(req, res, req.body);
+    res.on("close", () => {
+      console.log("Request closed");
+      transport.close();
+      server.close();
+    });
+  } catch (error) {
+    console.error("Error handling MCP request:", error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        jsonrpc: "2.0",
+        error: {
+          code: -32_603,
+          message: "Internal server error",
+        },
+        id: null,
+      });
+    }
+  }
+});
+
+const httpServer = app.listen(PORT, () => {
+  console.log(`computermate MCP server (HTTP) listening on port ${PORT}`);
+});
+
+process.on("SIGINT", () => {
+  httpServer.close();
+  process.exit(0);
 });

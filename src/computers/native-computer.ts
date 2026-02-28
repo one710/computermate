@@ -142,11 +142,17 @@ export class NativeComputer implements Computer {
         this.cachedDimensions = [primary.width(), primary.height()];
         return this.cachedDimensions;
       }
-
-      throw new Error("No monitor found");
     } catch (error) {
-      console.error("Failed to get dimensions:", error);
-      // Fallback
+      console.warn("Failed to get dimensions via node-screenshots:", error);
+    }
+
+    // Fallback to robotjs
+    try {
+      const size = robot.getScreenSize();
+      this.cachedDimensions = [size.width, size.height];
+      return this.cachedDimensions;
+    } catch (error) {
+      console.error("Failed to get dimensions via robotjs:", error);
       return [1280, 800];
     }
   }
