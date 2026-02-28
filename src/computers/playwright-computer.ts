@@ -7,6 +7,7 @@ import {
 import { path as generatePath } from "ghost-cursor";
 import { Computer, Environment, MouseButton, Point } from "./computer.js";
 import { installMouseHelper } from "../utils/mouse-helper.js";
+import { compressImage } from "../utils/compress-image.js";
 
 // ---------------------------------------------------------------------------
 // CUA / friendly key names → Playwright key identifiers
@@ -202,8 +203,9 @@ export class PlaywrightComputer implements Computer {
 
   async screenshot(): Promise<string> {
     const page = this.requirePage();
-    const buf = await page.screenshot({ fullPage: false });
-    return buf.toString("base64");
+    const buf = await page.screenshot();
+    const compressed = await compressImage(buf);
+    return compressed.toString("base64");
   }
 
   async screenshotRegion(p1: Point, p2: Point): Promise<string> {
@@ -212,16 +214,14 @@ export class PlaywrightComputer implements Computer {
     const page = this.requirePage();
     const xMin = Math.max(0, Math.min(p1.x, p2.x));
     const yMin = Math.max(0, Math.min(p1.y, p2.y));
-    const xMax = Math.min(this.width, Math.max(p1.x, p2.x));
-    const yMax = Math.min(this.height, Math.max(p1.y, p2.y));
-
-    const width = Math.max(1, xMax - xMin);
-    const height = Math.max(1, yMax - yMin);
+    const width = Math.max(1, Math.abs(p1.x - p2.x));
+    const height = Math.max(1, Math.abs(p1.y - p2.y));
 
     const buf = await page.screenshot({
       clip: { x: xMin, y: yMin, width, height },
     });
-    return buf.toString("base64");
+    const compressed = await compressImage(buf);
+    return compressed.toString("base64");
   }
 
   async click(

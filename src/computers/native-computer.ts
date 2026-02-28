@@ -1,7 +1,8 @@
 import robot from "robotjs";
 import { Monitor } from "node-screenshots";
-import { Computer, Environment, MouseButton, Point } from "./computer.js";
 import { path as generatePath } from "ghost-cursor";
+import { Computer, Environment, MouseButton, Point } from "./computer.js";
+import { compressImage } from "../utils/compress-image.js";
 
 // ---------------------------------------------------------------------------
 // robotjs key mapping
@@ -98,7 +99,8 @@ export class NativeComputer implements Computer {
     if (!primary) throw new Error("No monitor found");
     const image = await primary.captureImage();
     const pngBuf = await image.toPng();
-    return pngBuf.toString("base64");
+    const compressed = await compressImage(pngBuf);
+    return compressed.toString("base64");
   }
 
   async screenshotRegion(p1: Point, p2: Point): Promise<string> {
@@ -120,7 +122,8 @@ export class NativeComputer implements Computer {
     const image = await primary.captureImage();
     const cropped = await image.crop(xMin, yMin, w, h);
     const pngBuf = await cropped.toPng();
-    return pngBuf.toString("base64");
+    const compressed = await compressImage(pngBuf);
+    return compressed.toString("base64");
   }
 
   async click(
